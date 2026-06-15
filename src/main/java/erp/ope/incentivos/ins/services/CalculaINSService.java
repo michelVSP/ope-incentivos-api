@@ -4,11 +4,14 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import erp.ope.incentivos.exception.BadRequestException;
 import erp.ope.incentivos.exception.CalculoDuplicadoException;
@@ -62,6 +65,7 @@ public class CalculaINSService
 		procesaCalculoInsCuatrimestral(cuatrimestre, anio);
 	}
 
+	@Transactional
 	private void procesaCalculoInsCuatrimestral(String cuatrimestre, Integer anio) throws Exception 
 	{
 		Date f1 = obtieneFechaIni(cuatrimestre, anio);
@@ -81,7 +85,9 @@ public class CalculaINSService
 		/////  busca detalles INS
 		Map<String, List<InsDetail>> mapINSDetail = insDetailService.buscaDetallesXPeriodoXAnio(fechaIni, fechaFin);
 	
-		/////  busca kms viajes nomina
+		Map<String, BinnacleIns> bitacoras = new HashMap<>();
+		
+		/////  busca kms viajes nomina por ambito y relaciona
 		mapKmsGOAL.values().stream().forEach(kmsGOAL -> 
 		{
 			String regionId = kmsGOAL.getPk().getPlazaCobro();
@@ -91,28 +97,41 @@ public class CalculaINSService
 			Map<String, BinnacleIns> acumulados = consultaAcumuladoPorCuatrimestre(regionId, marcaId, zonaId , fechaIni, fechaFin);
 			
 			relacionaViajesAcomuladosVSIncidencia(acumulados, mapINSDetail, fechaIni, fechaFin);
-			validaIncentivos(acumulados, mapDreegreInc, mapSanctions, kmsGOAL);
-			guardaEnInsBitacoraInsDetalle(acumulados);
+			validaIncentivoINS(acumulados, mapDreegreInc, mapSanctions, kmsGOAL);
+			bitacoras.putAll(acumulados);
 		});
 		
+		/////  guarda resultado evaluacion de incentivo
+		guardaEnInsBitacoraInsDetalle(bitacoras);
 	}
 
+	@Transactional
 	private void guardaEnInsBitacoraInsDetalle(Map<String, BinnacleIns> acumulados) 
 	{
-		acumulados.values().stream().forEach(e -> { binnacleInsRepository.save(e); });
+		int count = 0;
+		for (BinnacleIns vo : acumulados.values()) 
+		{
+			binnacleInsRepository.save(vo);
+			if(count % 500 == 0)
+			{
+				binnacleInsRepository.flush();
+				count = 0;
+			}
+			count++;
+		}
 	}
 
-	private void validaIncentivos(Map<String, BinnacleIns> acumulados, Map<String, DegreeIncidents> mapDreegreInc,
+	private void validaIncentivoINS(Map<String, BinnacleIns> acumulados, Map<String, DegreeIncidents> mapDreegreInc,
 									Map<String, SanctionsIncidents> mapSanctions, KmsGoalINS e) 
 	{
 		for (BinnacleIns bitacora : acumulados.values()) 
 		{
-			boolean estatusGP = evaluaBitacora(bitacora, e.getKms(), mapDreegreInc, mapSanctions);
+			boolean estatusGP = validaAlcanzaIncentivoINS(bitacora, e.getKms(), mapDreegreInc, mapSanctions);
 			bitacora.setStatusGP(estatusGP ? 1 : 0);
 		}
 	}
 	
-	public boolean evaluaBitacora(BinnacleIns bitacora, Integer kmsMeta, Map<String, DegreeIncidents> mapDreegreInc, Map<String, SanctionsIncidents> mapSanctions) 
+	public boolean validaAlcanzaIncentivoINS(BinnacleIns bitacora, Integer kmsMeta, Map<String, DegreeIncidents> mapDreegreInc, Map<String, SanctionsIncidents> mapSanctions) 
 	{
 		if(bitacora.getKilometers().intValue() < kmsMeta.intValue()) 
 			return false; 
@@ -120,11 +139,15 @@ public class CalculaINSService
 		if(bitacora.getLstInsDetails() == null || bitacora.getLstInsDetails().isEmpty()) 
 			return true;
 
-		boolean tieneAfectacion = bitacora.getLstInsDetails().stream().map(x -> mapDreegreInc.get(x.getDegreeCode())).anyMatch(y -> y.equals(1));
+		boolean tieneAfectacion = bitacora.getLstInsDetails().stream().map(x -> mapDreegreInc.get(x.getDegreeCode()))
+															.filter(Objects::nonNull)
+															.anyMatch(y -> Integer.valueOf(1).equals(y.getAffectationINS()));
 		if(tieneAfectacion)
 			return false;
 		
-		tieneAfectacion = bitacora.getLstInsDetails().stream().map(x -> mapSanctions.get(x.getDegreeCode())).anyMatch(y -> y.equals(1));
+		tieneAfectacion = bitacora.getLstInsDetails().stream().map(x -> mapSanctions.get(x.getDegreeCode()))
+													.filter(Objects::nonNull)
+													.anyMatch(y -> Integer.valueOf(1).equals(y.getAffectationINS()));
 		if(tieneAfectacion)
 			return false;
 		
@@ -157,15 +180,8 @@ public class CalculaINSService
 
 	private void limpiaInsBitacora_InsDetalle(LocalDate fechaIni, LocalDate fechaFin) throws Exception 
 	{
-		try 
-		{
-			insDetailService.limpiaInsBitacoraInsDetalle(fechaIni, fechaFin);
-			binnacleInsServ.limpiaInsBitacoraInsDetalle(fechaIni, fechaFin);
-		}
-		catch (Exception e) 
-		{
-			throw new Exception("Ocurrio un problema al intentar borrar las bitacoras existentes");
-		}
+		insDetailService.limpiaInsBitacoraInsDetalle(fechaIni, fechaFin);
+		binnacleInsServ.limpiaInsBitacoraInsDetalle(fechaIni, fechaFin);
 	}
 
 	private boolean validaCalculoExistente(String cuatrimestre, Integer anio) 
@@ -181,17 +197,20 @@ public class CalculaINSService
 	
 	private Date obtieneFechaIni(String cuatrimestre, Integer anio)
 	{
-		int mesInicio=0;
+		int mesInicio = 0;
 		
-		if(cuatrimestre.equals("PRIMER CUATRIMESTRE")) 
+		if(cuatrimestre.equalsIgnoreCase("PRIMER CUATRIMESTRE")) 
 			mesInicio = 0;
 		
-		else if(cuatrimestre.equals("SEGUNDO CUATRIMESTRE")) 
+		else if(cuatrimestre.equalsIgnoreCase("SEGUNDO CUATRIMESTRE")) 
 			mesInicio = 4;
 		
-		else if(cuatrimestre.equals("TERCER CUATRIMESTRE")) 
+		else if(cuatrimestre.equalsIgnoreCase("TERCER CUATRIMESTRE")) 
 			mesInicio = 8;
 		
+		if(mesInicio == 0)
+			throw new BadRequestException("Descripcion de cuatrimestre invalido");
+			
 		Calendar calIni  = Calendar.getInstance();
 		calIni.setTime(new java.util.Date());
         calIni.set(Calendar.DAY_OF_MONTH, 1);

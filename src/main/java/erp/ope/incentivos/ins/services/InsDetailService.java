@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import erp.ope.incentivos.exception.RecursoNoEncontradoException;
 import erp.ope.incentivos.ins.model.InsDetail;
 import erp.ope.incentivos.ins.model.TravelIncidents;
 import erp.ope.incentivos.ins.repositories.InsDetailRespository;
@@ -36,15 +35,11 @@ public class InsDetailService
 	
 	public Map<String, List<InsDetail>> buscaDetallesXPeriodoXAnio(LocalDate fechaIni, LocalDate fechaFin) 
 	{
-		
 		List<TravelIncidents> lst = travelIncidService.buscaIncidentesViajes(fechaIni, fechaFin);
-		if(lst.isEmpty())
-			throw new RecursoNoEncontradoException("No se encontraron incidencias en el periodo y año seleccionados");
 		
 		Map<String, List<InsDetail>> map = lst.stream()
 			    .collect(Collectors.groupingBy(TravelIncidents::getDriverCode,
-			        Collectors.mapping(e -> travelIncidentToInsDetail(e), Collectors.toList())
-			    ));
+			        Collectors.mapping(e -> travelIncidentToInsDetail(e), Collectors.toList())));
 		
 		return map;
 	}
