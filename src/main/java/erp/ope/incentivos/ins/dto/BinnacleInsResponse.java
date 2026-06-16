@@ -64,9 +64,6 @@ public class BinnacleInsResponse
 	
 	public void addDetail(InsDetail detail) 
 	{
-	    if (this.lstInsDetailsResp == null) 
-	        this.lstInsDetailsResp = new ArrayList<>();
-	
 	    this.lstInsDetailsResp.add(new InsDetailResponse(detail));
 	}
 }

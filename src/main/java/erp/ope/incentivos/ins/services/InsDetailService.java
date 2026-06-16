@@ -28,7 +28,7 @@ public class InsDetailService
 		repository.deleteByDateStartBetween(fechaIni, fechaFin);
 	}
 
-	public void limpiaInsBitacoraInsDetalle(LocalDate fechaIni, LocalDate fechaFin) 
+	public void limpiaDetallesInsBitacora(LocalDate fechaIni, LocalDate fechaFin) 
 	{
 		repository.deleteByDateStartBetween(fechaIni, fechaFin);
 	}

@@ -62,12 +62,8 @@ public class BinnacleIns
 	@OneToMany(mappedBy = "binnacleIns", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<InsDetail> lstInsDetails = new ArrayList<>();
 
-	// AGREGA ESTE MÉTODO al final de la clase:
 	public void addDetail(InsDetail detail) 
 	{
-	    if (this.lstInsDetails == null) 
-	        this.lstInsDetails = new ArrayList<>();
-	
 	    this.lstInsDetails.add(detail);
 	    detail.setBinnacleIns(this);
 	}

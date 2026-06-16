@@ -30,7 +30,7 @@ public class BinnacleInsService
 		return false;
 	}
 	
-	public void limpiaInsBitacoraInsDetalle(LocalDate fechaIni, LocalDate fechaFin) throws Exception
+	public void limpiaBitacoraIns(LocalDate fechaIni, LocalDate fechaFin) throws Exception
 	{
 		repository.deleteByDateStartBetween(fechaIni, fechaFin);
 	}

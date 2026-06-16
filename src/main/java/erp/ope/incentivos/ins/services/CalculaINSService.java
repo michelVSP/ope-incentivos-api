@@ -183,8 +183,8 @@ public class CalculaINSService
 
 	private void limpiaInsBitacora_InsDetalle(LocalDate fechaIni, LocalDate fechaFin) throws Exception 
 	{
-		insDetailService.limpiaInsBitacoraInsDetalle(fechaIni, fechaFin);
-		binnacleInsServ.limpiaInsBitacoraInsDetalle(fechaIni, fechaFin);
+		insDetailService.limpiaDetallesInsBitacora(fechaIni, fechaFin);
+		binnacleInsServ.limpiaBitacoraIns(fechaIni, fechaFin);
 	}
 
 	private boolean validaCalculoExistente(String cuatrimestre, Integer anio) 
