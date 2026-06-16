@@ -11,7 +11,7 @@ import erp.ope.incentivos.ins.model.TravelIncidents;
 import erp.ope.incentivos.ins.model.TravelIncidentsPK;
 
 @Repository
-public interface TravelIncidentaRepository extends JpaRepository<TravelIncidents, TravelIncidentsPK>
+public interface TravelIncidentsRepository extends JpaRepository<TravelIncidents, TravelIncidentsPK>
 {
 	@Query(""" 
 			select t 

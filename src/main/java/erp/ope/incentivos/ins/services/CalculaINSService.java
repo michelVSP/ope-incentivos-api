@@ -2,6 +2,7 @@ package erp.ope.incentivos.ins.services;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import erp.ope.incentivos.exception.BadRequestException;
 import erp.ope.incentivos.exception.CalculoDuplicadoException;
+import erp.ope.incentivos.exception.RecursoNoEncontradoException;
+import erp.ope.incentivos.ins.dto.BinnacleInsResponse;
 import erp.ope.incentivos.ins.model.BinnacleIns;
 import erp.ope.incentivos.ins.model.DegreeIncidents;
 import erp.ope.incentivos.ins.model.InsDetail;
@@ -242,7 +245,7 @@ public class CalculaINSService
 	{
         Calendar cl = Calendar.getInstance();
         int dias = getMaxDiasEnMes(mes, year);
-        cl.set(year, mes, dias, 23, 59, 00);
+        cl.set(year, mes, dias, 23, 59, 59);
         return new Date(cl.getTime().getTime() ) ;
     }
 
@@ -282,7 +285,7 @@ public class CalculaINSService
         return myDia;
     }
 
-	public List<BinnacleIns> buscaBitacorasXCuatrimestre(String cuatrimestre, Integer anio) 
+	public List<BinnacleInsResponse> buscaBitacorasXCuatrimestre(String cuatrimestre, Integer anio) 
 	{
 		if(cuatrimestre == null)
 			throw new BadRequestException("Periodo invalido");
@@ -296,7 +299,19 @@ public class CalculaINSService
 		LocalDate  fechaIni = f1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		LocalDate  fechaFin = f2.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-		return binnacleInsServ.buscaBitacorasXCuatrimestre(fechaIni, fechaFin);
+		List<BinnacleIns> lst = binnacleInsServ.buscaBitacorasXCuatrimestre(fechaIni, fechaFin);
+		
+		if(lst.isEmpty())
+			throw new RecursoNoEncontradoException("No se encontro informacion con el periodo seleccionado");
+		
+		List<BinnacleInsResponse> lstResp = new ArrayList<>();
+		
+		lst.stream().forEach(e -> 
+		{
+			lstResp.add(new BinnacleInsResponse(e));
+		});
+		
+		return lstResp;
 	}
 	
 }

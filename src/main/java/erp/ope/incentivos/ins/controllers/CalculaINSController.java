@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import erp.ope.incentivos.ins.model.BinnacleIns;
+import erp.ope.incentivos.ins.dto.BinnacleInsResponse;
 import erp.ope.incentivos.ins.services.CalculaINSService;
 
 @RestController
@@ -26,18 +26,18 @@ public class CalculaINSController
 	@PostMapping("/calculaIns/{cuatrimestre}/{anio}")
 	public ResponseEntity<String> procesaCalculoINS(
 	        @PathVariable String cuatrimestre,
-	        @PathVariable Integer anio) throws Exception 
+	        @PathVariable Integer anio) throws Exception
 	{
 	    service.procesaCalculoINS(cuatrimestre, anio);
 	    return ResponseEntity.ok("Proceso de cálculo de INS cuatrimestral terminó correctamente");
 	}
 	
 	@GetMapping("/buscaCalculo/{cuatrimestre}/{anio}")
-	public ResponseEntity<List<BinnacleIns>> buscaBitacorasXCuatrimestre(
+	public ResponseEntity<List<BinnacleInsResponse>> buscaBitacorasXCuatrimestre(
 	        @PathVariable String cuatrimestre,
 	        @PathVariable Integer anio) throws Exception 
 	{
-	    List<BinnacleIns> lst = service.buscaBitacorasXCuatrimestre(cuatrimestre, anio);
+	    List<BinnacleInsResponse> lst = service.buscaBitacorasXCuatrimestre(cuatrimestre, anio);
 	    
 	    return ResponseEntity.ok(lst);
 	}

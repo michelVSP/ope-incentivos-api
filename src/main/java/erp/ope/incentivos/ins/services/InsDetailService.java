@@ -23,7 +23,7 @@ public class InsDetailService
 		this.travelIncidService = travelIncidService;
 	}
 	
-	public void borraBitacoraDetalle(LocalDate fechaIni, LocalDate fechaFin)throws Exception
+	public void borraBitacoraDetalle(LocalDate fechaIni, LocalDate fechaFin)
 	{
 		repository.deleteByDateStartBetween(fechaIni, fechaFin);
 	}
