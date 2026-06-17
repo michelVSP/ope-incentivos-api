@@ -33,8 +33,8 @@ public class CalculaINSController
 	    return ResponseEntity.ok(vo);
 	}
 	
-	@GetMapping("/buscaCalculo/{cuatrimestre}/{anio}")
-	public ResponseEntity<List<BinnacleInsResponse>> buscaBitacorasXCuatrimestre(@Valid @RequestBody InsCalculateRequest request) throws Exception 
+	@GetMapping("/findCalculate")
+	public ResponseEntity<List<BinnacleInsResponse>> findCalculate(@Valid @RequestBody InsCalculateRequest request) throws Exception 
 	{
 	    List<BinnacleInsResponse> lst = service.buscaBitacorasXCuatrimestre(request.getPeriod(), request.getYear());
 	    return ResponseEntity.ok(lst);
