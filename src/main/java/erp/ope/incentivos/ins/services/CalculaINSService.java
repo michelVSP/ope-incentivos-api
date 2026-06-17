@@ -18,6 +18,7 @@ import erp.ope.incentivos.exception.BadRequestException;
 import erp.ope.incentivos.exception.CalculoDuplicadoException;
 import erp.ope.incentivos.exception.RecursoNoEncontradoException;
 import erp.ope.incentivos.ins.dto.BinnacleInsResponse;
+import erp.ope.incentivos.ins.dto.InsCalculateRequest;
 import erp.ope.incentivos.ins.model.BinnacleIns;
 import erp.ope.incentivos.ins.model.DegreeIncidents;
 import erp.ope.incentivos.ins.model.InsDetail;
@@ -53,7 +54,7 @@ public class CalculaINSService
 		this.binnacleInsRepository = binnacleInsRepository;
 	}
 
-	public void procesaCalculoINS(String cuatrimestre, Integer anio) throws Exception 
+	public InsCalculateRequest procesaCalculoINS(String cuatrimestre, Integer anio) throws Exception 
 	{
 		if(cuatrimestre == null)
 			throw new BadRequestException("Periodo invalido");
@@ -65,12 +66,17 @@ public class CalculaINSService
 		if(!continuar)
 			throw new CalculoDuplicadoException("El proceso de pago ya ha sido ejecutado por nómina, no es posible hacer el cálculo nuevamente.");
 		
-		procesaCalculoInsCuatrimestral(cuatrimestre, anio);
+		return procesaCalculoInsCuatrimestral(cuatrimestre, anio);
 	}
 
 	@Transactional
-	private void procesaCalculoInsCuatrimestral(String cuatrimestre, Integer anio) throws Exception 
+	private InsCalculateRequest procesaCalculoInsCuatrimestral(String cuatrimestre, Integer anio) throws Exception 
 	{
+		InsCalculateRequest vo = new InsCalculateRequest();
+		vo.setPeriod(cuatrimestre);
+		vo.setYear(anio);
+//		vo.set
+		
 		Date f1 = obtieneFechaIni(cuatrimestre, anio);
 		Date f2 = obtieneFechaFin(cuatrimestre, anio);
 		
@@ -100,12 +106,17 @@ public class CalculaINSService
 			Map<String, BinnacleIns> acumulados = consultaAcumuladoPorCuatrimestre(regionId, marcaId, zonaId , fechaIni, fechaFin);
 			
 			relacionaViajesAcomuladosVSIncidencia(acumulados, mapINSDetail, fechaIni, fechaFin);
-			validaIncentivoINS(acumulados, mapDreegreInc, mapSanctions, kmsGOAL);
+			validaIncentivoINS(acumulados, mapDreegreInc, mapSanctions, kmsGOAL, vo);
 			bitacoras.putAll(acumulados);
 		});
 		
 		/////  guarda resultado evaluacion de incentivo
 		guardaEnInsBitacoraInsDetalle(bitacoras);
+		
+		vo.setTotalDrivers(bitacoras.size());
+		vo.setProcessed(bitacoras.size());
+		
+		return vo;
 	}
 
 	@Transactional
@@ -125,12 +136,21 @@ public class CalculaINSService
 	}
 
 	private void validaIncentivoINS(Map<String, BinnacleIns> acumulados, Map<String, DegreeIncidents> mapDreegreInc,
-									Map<String, SanctionsIncidents> mapSanctions, KmsGoalINS e) 
+									Map<String, SanctionsIncidents> mapSanctions, KmsGoalINS e, InsCalculateRequest vo) 
 	{
 		for (BinnacleIns bitacora : acumulados.values()) 
 		{
 			boolean estatusGP = validaAlcanzaIncentivoINS(bitacora, e.getKms(), mapDreegreInc, mapSanctions);
-			bitacora.setStatusGP(estatusGP ? 1 : 0);
+			if(estatusGP)
+			{
+				bitacora.setStatusGP(1);
+				vo.setEligible(vo.getEligible() + 1);
+			}
+			else
+			{
+				bitacora.setStatusGP(0);
+				vo.setIneligible(vo.getIneligible() + 1);
+			}
 		}
 	}
 	

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import erp.ope.incentivos.ins.dto.BinnacleInsResponse;
+import erp.ope.incentivos.ins.dto.InsCalculateRequest;
 import erp.ope.incentivos.ins.services.CalculaINSService;
 
 @RestController
@@ -24,12 +25,12 @@ public class CalculaINSController
 	}
 	
 	@PostMapping("/calculaIns/{cuatrimestre}/{anio}")
-	public ResponseEntity<String> procesaCalculoINS(
+	public ResponseEntity<InsCalculateRequest> procesaCalculoINS(
 	        @PathVariable String cuatrimestre,
 	        @PathVariable Integer anio) throws Exception
 	{
-	    service.procesaCalculoINS(cuatrimestre, anio);
-	    return ResponseEntity.ok("Proceso de cálculo de INS cuatrimestral terminó correctamente");
+		InsCalculateRequest vo = service.procesaCalculoINS(cuatrimestre, anio);
+	    return ResponseEntity.ok(vo);
 	}
 	
 	@GetMapping("/buscaCalculo/{cuatrimestre}/{anio}")
