@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "DEGREE_INCIDENTS")
+@Table(name = "SANCTIONS_INCIDENTS")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,10 +17,10 @@ public class SanctionsIncidents
 {
 
 	@Id
-	@Column(name = "DEGREE_CODE")
+	@Column(name = "SANCTION_CODE")
 	private String sanctionCode;
 	
-	@Column(name = "DEGREE_DESCRIPTION")
+	@Column(name = "SANCTION_DESCRIPTION")
 	private String sanctionDescription;
 	
 	@Column(name = "AFFECTATION_INS")

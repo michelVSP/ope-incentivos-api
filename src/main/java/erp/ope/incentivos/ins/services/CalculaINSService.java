@@ -200,7 +200,7 @@ public class CalculaINSService
 	
 	private Date obtieneFechaIni(String cuatrimestre, Integer anio)
 	{
-		int mesInicio = 0;
+		int mesInicio = -1;
 		
 		if(cuatrimestre.equalsIgnoreCase("PRIMER CUATRIMESTRE")) 
 			mesInicio = 0;
@@ -211,7 +211,7 @@ public class CalculaINSService
 		else if(cuatrimestre.equalsIgnoreCase("TERCER CUATRIMESTRE")) 
 			mesInicio = 8;
 		
-		if(mesInicio == 0)
+		if(mesInicio == -1)
 			throw new BadRequestException("Descripcion de cuatrimestre invalido");
 			
 		Calendar calIni  = Calendar.getInstance();

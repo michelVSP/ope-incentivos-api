@@ -36,8 +36,8 @@ public class TravelRepository
 	
 	public String getQueryConsultaAcomuladosCuatrimestre()
 	{
-		return "SELECT driver_code, SUM(kilometros) as kilometers"
-				+ "FROM ("
+		return "SELECT driver_code, SUM(kilometros) as kilometers "
+				+ " FROM ("
 				+ "    SELECT t.driver1_code as driver_code, t.kms as kilometros"
 				+ "    FROM TRAVELS t JOIN drivers d ON t.driver1_code = d.driver_code"
 				+ "    WHERE d.REGION_CODE = ? AND d.BRAND_CODE = ? AND d.ZONE_CODE = ?"
@@ -48,7 +48,7 @@ public class TravelRepository
 				+ "    WHERE d.REGION_CODE = ? AND d.BRAND_CODE = ? AND d.ZONE_CODE = ?"
 				+ "      AND t.departure_time BETWEEN ? AND ?"
 				+ ") combined"
-				+ "GROUP BY driver_code";
+				+ " GROUP BY driver_code";
 	}
 	
 	
