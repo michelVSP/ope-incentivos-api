@@ -14,7 +14,7 @@ import erp.ope.incentivos.ins.dto.InsCalculateRequest;
 import erp.ope.incentivos.ins.services.CalculaINSService;
 
 @RestController
-@RequestMapping(path = "/api/v1/calculo-ins")
+@RequestMapping(path = "/api/v1/ins")
 public class CalculaINSController 
 {
 	private final CalculaINSService service;
