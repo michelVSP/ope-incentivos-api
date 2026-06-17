@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InsCalculateRequest 
+public class InsCalculateResponse 
 {
 	int year;
 	String period;

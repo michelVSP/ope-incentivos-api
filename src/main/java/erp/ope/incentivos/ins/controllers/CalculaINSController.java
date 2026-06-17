@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import erp.ope.incentivos.ins.dto.BinnacleInsResponse;
-import erp.ope.incentivos.ins.dto.InsCalculateRequest;
+import erp.ope.incentivos.ins.dto.InsCalculateResponse;
 import erp.ope.incentivos.ins.services.CalculaINSService;
 
 @RestController
@@ -25,11 +25,11 @@ public class CalculaINSController
 	}
 	
 	@PostMapping("/calculaIns/{cuatrimestre}/{anio}")
-	public ResponseEntity<InsCalculateRequest> procesaCalculoINS(
+	public ResponseEntity<InsCalculateResponse> procesaCalculoINS(
 	        @PathVariable String cuatrimestre,
 	        @PathVariable Integer anio) throws Exception
 	{
-		InsCalculateRequest vo = service.procesaCalculoINS(cuatrimestre, anio);
+		InsCalculateResponse vo = service.procesaCalculoINS(cuatrimestre, anio);
 	    return ResponseEntity.ok(vo);
 	}
 	

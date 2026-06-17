@@ -18,7 +18,7 @@ import erp.ope.incentivos.exception.BadRequestException;
 import erp.ope.incentivos.exception.CalculoDuplicadoException;
 import erp.ope.incentivos.exception.RecursoNoEncontradoException;
 import erp.ope.incentivos.ins.dto.BinnacleInsResponse;
-import erp.ope.incentivos.ins.dto.InsCalculateRequest;
+import erp.ope.incentivos.ins.dto.InsCalculateResponse;
 import erp.ope.incentivos.ins.model.BinnacleIns;
 import erp.ope.incentivos.ins.model.DegreeIncidents;
 import erp.ope.incentivos.ins.model.InsDetail;
@@ -54,7 +54,7 @@ public class CalculaINSService
 		this.binnacleInsRepository = binnacleInsRepository;
 	}
 
-	public InsCalculateRequest procesaCalculoINS(String cuatrimestre, Integer anio) throws Exception 
+	public InsCalculateResponse procesaCalculoINS(String cuatrimestre, Integer anio) throws Exception 
 	{
 		if(cuatrimestre == null)
 			throw new BadRequestException("Periodo invalido");
@@ -70,9 +70,9 @@ public class CalculaINSService
 	}
 
 	@Transactional
-	private InsCalculateRequest procesaCalculoInsCuatrimestral(String cuatrimestre, Integer anio) throws Exception 
+	private InsCalculateResponse procesaCalculoInsCuatrimestral(String cuatrimestre, Integer anio) throws Exception 
 	{
-		InsCalculateRequest vo = new InsCalculateRequest();
+		InsCalculateResponse vo = new InsCalculateResponse();
 		vo.setPeriod(cuatrimestre);
 		vo.setYear(anio);
 //		vo.set
@@ -136,7 +136,7 @@ public class CalculaINSService
 	}
 
 	private void validaIncentivoINS(Map<String, BinnacleIns> acumulados, Map<String, DegreeIncidents> mapDreegreInc,
-									Map<String, SanctionsIncidents> mapSanctions, KmsGoalINS e, InsCalculateRequest vo) 
+									Map<String, SanctionsIncidents> mapSanctions, KmsGoalINS e, InsCalculateResponse vo) 
 	{
 		for (BinnacleIns bitacora : acumulados.values()) 
 		{
