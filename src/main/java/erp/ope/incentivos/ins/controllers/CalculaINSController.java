@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,12 +34,9 @@ public class CalculaINSController
 	}
 	
 	@GetMapping("/buscaCalculo/{cuatrimestre}/{anio}")
-	public ResponseEntity<List<BinnacleInsResponse>> buscaBitacorasXCuatrimestre(
-	        @PathVariable String cuatrimestre,
-	        @PathVariable Integer anio) throws Exception 
+	public ResponseEntity<List<BinnacleInsResponse>> buscaBitacorasXCuatrimestre(@Valid @RequestBody InsCalculateRequest request) throws Exception 
 	{
-	    List<BinnacleInsResponse> lst = service.buscaBitacorasXCuatrimestre(cuatrimestre, anio);
-	    
+	    List<BinnacleInsResponse> lst = service.buscaBitacorasXCuatrimestre(request.getPeriod(), request.getYear());
 	    return ResponseEntity.ok(lst);
 	}
 }
