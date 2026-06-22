@@ -9,25 +9,20 @@ import org.springframework.stereotype.Service;
 
 import erp.ope.incentivos.ins.model.InsDetail;
 import erp.ope.incentivos.ins.model.TravelIncidents;
-import erp.ope.incentivos.ins.repositories.InsDetailRespository;
+import erp.ope.incentivos.ins.repositories.InsDetailRepository;
 
 @Service
 public class InsDetailService 
 {
-	private final InsDetailRespository repository;
+	private final InsDetailRepository repository;
 	private final TravelIncidentsService travelIncidService;
 	
-	public InsDetailService(InsDetailRespository repository, TravelIncidentsService travelIncidService) 
+	public InsDetailService(InsDetailRepository repository, TravelIncidentsService travelIncidService) 
 	{
 		this.repository = repository;
 		this.travelIncidService = travelIncidService;
 	}
 	
-	public void borraBitacoraDetalle(LocalDate fechaIni, LocalDate fechaFin)
-	{
-		repository.deleteByDateStartBetween(fechaIni, fechaFin);
-	}
-
 	public void limpiaDetallesInsBitacora(LocalDate fechaIni, LocalDate fechaFin) 
 	{
 		repository.deleteByDateStartBetween(fechaIni, fechaFin);

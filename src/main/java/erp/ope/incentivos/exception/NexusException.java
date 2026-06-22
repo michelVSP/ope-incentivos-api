@@ -1,11 +1,11 @@
 package erp.ope.incentivos.exception;
 
-public class BadRequestException extends NexusException{
-
+public class NexusException extends RuntimeException
+{
 	private static final long serialVersionUID = 1L;
-
-	public BadRequestException(String mensaje) 
-	{
+	
+	public NexusException(String mensaje) 
+	{	
 		super(mensaje);
 	}
 }

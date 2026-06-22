@@ -1,6 +1,6 @@
 package erp.ope.incentivos.exception;
 
-public class RecursoNoEncontradoException extends RuntimeException {
+public class RecursoNoEncontradoException extends NexusException {
 
 	private static final long serialVersionUID = 1L;
 

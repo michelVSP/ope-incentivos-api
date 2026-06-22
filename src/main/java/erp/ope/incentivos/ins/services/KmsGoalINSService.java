@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import erp.ope.incentivos.exception.BadRequestException;
 import erp.ope.incentivos.ins.model.KmsGoalINS;
 import erp.ope.incentivos.ins.repositories.KmsGoalINSRepository;
 
@@ -29,6 +30,9 @@ public class KmsGoalINSService
 			periodo = 2;
 		if(cuatrimestre.trim().equalsIgnoreCase("TERCER CUATRIMESTRE"))
 			periodo = 3;
+		
+		if(periodo == 0)
+			throw new BadRequestException("Descripcion de cuatrimestre invalido");
 		
 		List<KmsGoalINS> lst = repository.findByYearAndPeriodo(anio, periodo);
 		Map<String, KmsGoalINS> map = lst.stream().collect(Collectors.toMap(e -> e.getPk().getPlazaCobro() +"-"+ e.getPk().getBrandCode()+"-"+ e.getPk().getZoneCode()+"-"+ e.getPk().getPeriod()+"-"+ e.getPk().getYearPeriod(), e -> e));

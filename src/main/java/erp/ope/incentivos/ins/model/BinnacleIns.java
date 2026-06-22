@@ -17,12 +17,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "BINNACLE_INS")
-@Data
+@Getter 
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class BinnacleIns 
@@ -59,7 +61,7 @@ public class BinnacleIns
 	@Column(name = "roster_status")
 	private Integer rosterStatus;
 	
-	@OneToMany(mappedBy = "binnacleIns", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "binnacleIns", fetch = FetchType.LAZY , cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<InsDetail> lstInsDetails = new ArrayList<>();
 
 	public void addDetail(InsDetail detail) 

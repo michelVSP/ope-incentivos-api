@@ -2,6 +2,7 @@ package erp.ope.incentivos.ins.services;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -30,7 +31,7 @@ public class BinnacleInsService
 		return false;
 	}
 	
-	public void limpiaBitacoraIns(LocalDate fechaIni, LocalDate fechaFin) throws Exception
+	public void limpiaBitacoraIns(LocalDate fechaIni, LocalDate fechaFin)
 	{
 		repository.deleteByDateStartBetween(fechaIni, fechaFin);
 	}
@@ -43,5 +44,20 @@ public class BinnacleInsService
 			throw new RecursoNoEncontradoException("No se encontraron datos con los parametros seleccionados");
 		
 		return lst;
+	}
+
+	public void guardaBitacoraInsDetalle(Map<String, BinnacleIns> acumulados) 
+	{
+		int count = 0;
+		for (BinnacleIns vo : acumulados.values()) 
+		{
+			repository.save(vo);
+			if(count % 500 == 0)
+			{
+				repository.flush();
+				count = 0;
+			}
+			count++;
+		}
 	}
 }

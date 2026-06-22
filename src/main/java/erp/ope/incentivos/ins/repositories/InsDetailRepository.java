@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import erp.ope.incentivos.ins.model.InsDetail;
 
 @Repository
-public interface InsDetailRespository extends JpaRepository<InsDetail, Integer>
+public interface InsDetailRepository extends JpaRepository<InsDetail, Integer>
 {
 	@Modifying
 	@Transactional

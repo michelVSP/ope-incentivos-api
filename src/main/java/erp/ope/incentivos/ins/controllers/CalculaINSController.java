@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import erp.ope.incentivos.ins.dto.BinnacleInsResponse;
@@ -27,16 +28,16 @@ public class CalculaINSController
 	}
 	
 	@PostMapping("/calculate")
-	public ResponseEntity<InsCalculateResponse> calculate(@Valid @RequestBody InsCalculateRequest request) throws Exception
+	public ResponseEntity<InsCalculateResponse> calculate(@Valid @RequestBody InsCalculateRequest request)
 	{
 		InsCalculateResponse vo = service.procesaCalculoINS(request.getPeriod(), request.getYear());
 	    return ResponseEntity.ok(vo);
 	}
 	
 	@GetMapping("/findCalculate")
-	public ResponseEntity<List<BinnacleInsResponse>> findCalculate(@Valid @RequestBody InsCalculateRequest request) throws Exception 
+	public ResponseEntity<List<BinnacleInsResponse>> findCalculate(@RequestParam String period, @RequestParam int year ) throws Exception 
 	{
-	    List<BinnacleInsResponse> lst = service.buscaBitacorasXCuatrimestre(request.getPeriod(), request.getYear());
+	    List<BinnacleInsResponse> lst = service.buscaBitacorasXCuatrimestre(period, year);
 	    return ResponseEntity.ok(lst);
 	}
 }

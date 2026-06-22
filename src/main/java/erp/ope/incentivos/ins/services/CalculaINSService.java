@@ -1,9 +1,9 @@
 package erp.ope.incentivos.ins.services;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -19,12 +19,12 @@ import erp.ope.incentivos.exception.CalculoDuplicadoException;
 import erp.ope.incentivos.exception.RecursoNoEncontradoException;
 import erp.ope.incentivos.ins.dto.BinnacleInsResponse;
 import erp.ope.incentivos.ins.dto.InsCalculateResponse;
+import erp.ope.incentivos.ins.dto.InsDetailResponse;
 import erp.ope.incentivos.ins.model.BinnacleIns;
 import erp.ope.incentivos.ins.model.DegreeIncidents;
 import erp.ope.incentivos.ins.model.InsDetail;
 import erp.ope.incentivos.ins.model.KmsGoalINS;
 import erp.ope.incentivos.ins.model.SanctionsIncidents;
-import erp.ope.incentivos.ins.repositories.BinnacleInsRepository;
 
 @Service
 public class CalculaINSService 
@@ -35,15 +35,13 @@ public class CalculaINSService
 	private final SanctionsIncidentsService sanctionsIncidService;
 	private final KmsGoalINSService kmsGoalINSService;
 	private final TravelsService travelsService;
-	private final BinnacleInsRepository binnacleInsRepository;
 	
 	public CalculaINSService(DegreeIncidentsService degreeIncidServ, 
 								BinnacleInsService binnacleInsServ, 
 								InsDetailService insDetailService,
 								SanctionsIncidentsService sanctionsIncidService,
 								KmsGoalINSService kmsGoalINSService,
-								TravelsService travelsService,
-								BinnacleInsRepository binnacleInsRepository) 
+								TravelsService travelsService) 
 	{	
 		this.degreeIncidServ = degreeIncidServ;
 		this.binnacleInsServ = binnacleInsServ;
@@ -51,10 +49,9 @@ public class CalculaINSService
 		this.sanctionsIncidService = sanctionsIncidService;
 		this.kmsGoalINSService = kmsGoalINSService;
 		this.travelsService = travelsService;
-		this.binnacleInsRepository = binnacleInsRepository;
 	}
 
-	public InsCalculateResponse procesaCalculoINS(String cuatrimestre, Integer anio) throws Exception 
+	public InsCalculateResponse procesaCalculoINS(String cuatrimestre, Integer anio) 
 	{
 		if(cuatrimestre == null)
 			throw new BadRequestException("Periodo invalido");
@@ -70,21 +67,17 @@ public class CalculaINSService
 	}
 
 	@Transactional
-	private InsCalculateResponse procesaCalculoInsCuatrimestral(String cuatrimestre, Integer anio) throws Exception 
+	public InsCalculateResponse procesaCalculoInsCuatrimestral(String cuatrimestre, Integer anio) 
 	{
 		InsCalculateResponse vo = new InsCalculateResponse();
 		vo.setPeriod(cuatrimestre);
 		vo.setYear(anio);
-//		vo.set
 		
-		Date f1 = obtieneFechaIni(cuatrimestre, anio);
-		Date f2 = obtieneFechaFin(cuatrimestre, anio);
-		
-		LocalDate  fechaIni = f1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-		LocalDate  fechaFin = f2.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate  fechaIni = obtieneFechaIni(cuatrimestre, anio);
+		LocalDate  fechaFin = obtieneFechaFin(cuatrimestre, anio);
 		
 		////  limpia Bitacoras anteriores no pagadas por nomina
-		limpiaInsBitacora_InsDetalle(fechaIni, fechaFin);
+		limpiaInsBitacoraYDetalle(fechaIni, fechaFin);
 		
 		/////  carga parametros
 		Map<String, DegreeIncidents> mapDreegreInc = degreeIncidServ.buscaGruposIncidentes();
@@ -120,22 +113,12 @@ public class CalculaINSService
 	}
 
 	@Transactional
-	private void guardaEnInsBitacoraInsDetalle(Map<String, BinnacleIns> acumulados) 
+	public void guardaEnInsBitacoraInsDetalle(Map<String, BinnacleIns> acumulados) 
 	{
-		int count = 0;
-		for (BinnacleIns vo : acumulados.values()) 
-		{
-			binnacleInsRepository.save(vo);
-			if(count % 500 == 0)
-			{
-				binnacleInsRepository.flush();
-				count = 0;
-			}
-			count++;
-		}
+		binnacleInsServ.guardaBitacoraInsDetalle(acumulados);
 	}
 
-	private void validaIncentivoINS(Map<String, BinnacleIns> acumulados, Map<String, DegreeIncidents> mapDreegreInc,
+	public void validaIncentivoINS(Map<String, BinnacleIns> acumulados, Map<String, DegreeIncidents> mapDreegreInc,
 									Map<String, SanctionsIncidents> mapSanctions, KmsGoalINS e, InsCalculateResponse vo) 
 	{
 		for (BinnacleIns bitacora : acumulados.values()) 
@@ -168,7 +151,7 @@ public class CalculaINSService
 		if(tieneAfectacion)
 			return false;
 		
-		tieneAfectacion = bitacora.getLstInsDetails().stream().map(x -> mapSanctions.get(x.getDegreeCode()))
+		tieneAfectacion = bitacora.getLstInsDetails().stream().map(x -> mapSanctions.get(x.getSanctionCode()))
 													.filter(Objects::nonNull)
 													.anyMatch(y -> Integer.valueOf(1).equals(y.getAffectationINS()));
 		if(tieneAfectacion)
@@ -177,7 +160,7 @@ public class CalculaINSService
 		return true;
 	}
 
-	private void relacionaViajesAcomuladosVSIncidencia(Map<String, BinnacleIns> acumulados, Map<String, List<InsDetail>> mapINSDetail, LocalDate  fechaIni, LocalDate fechaFin) 
+	public void relacionaViajesAcomuladosVSIncidencia(Map<String, BinnacleIns> acumulados, Map<String, List<InsDetail>> mapINSDetail, LocalDate  fechaIni, LocalDate fechaFin) 
 	{
 		for (BinnacleIns bitacora : acumulados.values()) 
 		{
@@ -194,31 +177,28 @@ public class CalculaINSService
 		}
 	}
 
-	private Map<String, BinnacleIns> consultaAcumuladoPorCuatrimestre(String regionId, String marcaId, String zonaId, LocalDate fechaIni, LocalDate fechaFin) 
+	public Map<String, BinnacleIns> consultaAcumuladoPorCuatrimestre(String regionId, String marcaId, String zonaId, LocalDate fechaIni, LocalDate fechaFin) 
 	{
 		List<BinnacleIns> lst = travelsService.consultaAcumuladoPorCuatrimestre(regionId, marcaId, zonaId, fechaIni, fechaFin);
 		Map<String, BinnacleIns> map = lst.stream().collect(Collectors.toMap(BinnacleIns :: getDriverCode, e ->e));
 		return map;
 	}
 
-	private void limpiaInsBitacora_InsDetalle(LocalDate fechaIni, LocalDate fechaFin) throws Exception 
+	public void limpiaInsBitacoraYDetalle(LocalDate fechaIni, LocalDate fechaFin) 
 	{
 		insDetailService.limpiaDetallesInsBitacora(fechaIni, fechaFin);
 		binnacleInsServ.limpiaBitacoraIns(fechaIni, fechaFin);
 	}
 
-	private boolean validaCalculoExistente(String cuatrimestre, Integer anio) 
+	public boolean validaCalculoExistente(String cuatrimestre, Integer anio) 
 	{
-		Date f1 = obtieneFechaIni(cuatrimestre, anio);
-		Date f2 = obtieneFechaFin(cuatrimestre, anio);
-		
-		LocalDate  fechaIni = f1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-		LocalDate  fechaFin = f2.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate  fechaIni = obtieneFechaIni(cuatrimestre, anio);
+		LocalDate  fechaFin = obtieneFechaFin(cuatrimestre, anio);
 		
 		return binnacleInsServ.buscaEstatusNominaExistente(fechaIni, fechaFin);
 	}
 	
-	private Date obtieneFechaIni(String cuatrimestre, Integer anio)
+	public LocalDate obtieneFechaIni(String cuatrimestre, Integer anio)
 	{
 		int mesInicio = -1;
 		
@@ -230,81 +210,28 @@ public class CalculaINSService
 		
 		else if(cuatrimestre.equalsIgnoreCase("TERCER CUATRIMESTRE")) 
 			mesInicio = 8;
-		
-		if(mesInicio == -1)
+		else
 			throw new BadRequestException("Descripcion de cuatrimestre invalido");
-			
-		Calendar calIni  = Calendar.getInstance();
-		calIni.setTime(new java.util.Date());
-        calIni.set(Calendar.DAY_OF_MONTH, 1);
-        calIni.set(Calendar.MONTH, mesInicio);
-        calIni.set(Calendar.YEAR, anio);
-        calIni.set(Calendar.HOUR_OF_DAY, 0);
-        calIni.set(Calendar.MINUTE, 0);
-        calIni.set(Calendar.SECOND, 0);
-        calIni.set(Calendar.MILLISECOND, 0);
-        
-        return new Date( calIni.getTime().getTime() );
-	}
-	
-	private Date obtieneFechaFin(String cuatrimestre, Integer anio) 
-	{
-        int mesFin=0;
 		
-		if(cuatrimestre.equals("PRIMER CUATRIMESTRE"))
+		return LocalDate.of(anio, mesInicio + 1, 1);
+	}
+	
+	public LocalDate obtieneFechaFin(String cuatrimestre, Integer anio) 
+	{
+        int mesFin = -1;
+		
+		if(cuatrimestre.equalsIgnoreCase("PRIMER CUATRIMESTRE"))
 			mesFin = 3;
-		else if(cuatrimestre.equals("SEGUNDO CUATRIMESTRE")) 
+		else if(cuatrimestre.equalsIgnoreCase("SEGUNDO CUATRIMESTRE")) 
 			mesFin = 7;
-		else if(cuatrimestre.equals("TERCER CUATRIMESTRE")) 
+		else if(cuatrimestre.equalsIgnoreCase("TERCER CUATRIMESTRE")) 
 			mesFin = 11;
+		else
+			throw new BadRequestException("Descripcion de cuatrimestre invalido");
 
-        return getDateFinMes(anio, mesFin);
+		return YearMonth.of(anio, mesFin + 1).atEndOfMonth();
 	}
 	
-	public Date getDateFinMes(int year, int mes)
-	{
-        Calendar cl = Calendar.getInstance();
-        int dias = getMaxDiasEnMes(mes, year);
-        cl.set(year, mes, dias, 23, 59, 59);
-        return new Date(cl.getTime().getTime() ) ;
-    }
-
-	public int getMaxDiasEnMes(int mes, int year) 
-	{
-		switch (mes) 
-		{
-			case Calendar.JANUARY:
-			case Calendar.MARCH:
-			case Calendar.MAY:
-			case Calendar.JULY:
-			case Calendar.AUGUST:
-			case Calendar.OCTOBER:
-			case Calendar.DECEMBER:
-			default:
-				return 31;
-
-			case Calendar.APRIL:
-			case Calendar.JUNE:
-			case Calendar.SEPTEMBER:
-			case Calendar.NOVEMBER:
-				return 30;
-
-			case Calendar.FEBRUARY: 
-			{
-				return getDiasFebrero(year);
-			}
-		}
-	}
-	
-	private int getDiasFebrero(int year) 
-    {
-        Calendar cal = Calendar.getInstance();
-        cal.set(year, 2, 0, 0, 0, 0);
-        int myDia = 0;
-        myDia = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        return myDia;
-    }
-
 	public List<BinnacleInsResponse> buscaBitacorasXCuatrimestre(String cuatrimestre, Integer anio) 
 	{
 		if(cuatrimestre == null)
@@ -313,11 +240,8 @@ public class CalculaINSService
 		if(anio == null || (anio.toString().length() != 4))
 			throw new BadRequestException("Año invalido");
 		
-		Date f1 = obtieneFechaIni(cuatrimestre, anio);
-		Date f2 = obtieneFechaFin(cuatrimestre, anio);
-		
-		LocalDate  fechaIni = f1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-		LocalDate  fechaFin = f2.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate  fechaIni = obtieneFechaIni(cuatrimestre, anio);
+		LocalDate  fechaFin = obtieneFechaFin(cuatrimestre, anio);
 
 		List<BinnacleIns> lst = binnacleInsServ.buscaBitacorasXCuatrimestre(fechaIni, fechaFin);
 		
@@ -328,10 +252,58 @@ public class CalculaINSService
 		
 		lst.stream().forEach(e -> 
 		{
-			lstResp.add(new BinnacleInsResponse(e));
+			lstResp.add(toBinnacleInsResponse(e));
 		});
 		
 		return lstResp;
 	}
 	
+	public BinnacleInsResponse toBinnacleInsResponse(BinnacleIns vo)
+	{
+		BinnacleInsResponse voR = new BinnacleInsResponse();
+		
+		voR.setId(vo.getId());
+		voR.setDriverCode(vo.getDriverCode());
+		voR.setStatusGP(vo.getStatusGP());
+		voR.setDateCalculation(vo.getDateCalculation());
+		voR.setDateStart(vo.getDateStart());
+		voR.setDateEnd(vo.getDateEnd());
+		voR.setKilometers(vo.getKilometers());
+		voR.setRosterStatus(vo.getRosterStatus());
+		voR.setLstInsDetailsResp(toListInsDetailResponse(vo.getLstInsDetails()));
+		return voR;
+	}
+	
+	public List<InsDetailResponse> toListInsDetailResponse(List<InsDetail> lst)
+	{
+		if(lst == null)
+			return new ArrayList<>();
+		
+		return lst.stream().map(e -> toInsDetailResponse(e)).toList();
+	}
+	
+	public InsDetailResponse toInsDetailResponse(InsDetail vo) 
+	{
+		InsDetailResponse voR = new InsDetailResponse();
+		
+		voR.setId(vo.getId());
+		voR.setDegreeCode(vo.getDegreeCode());
+		voR.setDegreeDescription(vo.getDegreeDescription());
+		voR.setSanctionCode(vo.getSanctionCode());
+		voR.setSanctiondescription(vo.getSanctiondescription());
+		voR.setDriverCode(vo.getDriverCode());
+		voR.setDateIncident(vo.getDateIncident());
+		voR.setHourIncident(vo.getHourIncident());
+		voR.setDegreeAffects(vo.getDegreeAffects());
+		voR.setStsSegopDegree(vo.getStsSegopDegree());
+		voR.setDateTravelGrd(vo.getDateTravelGrd());
+		voR.setTravelIdGrd(vo.getTravelIdGrd());
+		voR.setResponsibility(vo.getResponsibility());
+		voR.setStsSegopResp(vo.getStsSegopResp());
+		voR.setDateTravelRes(vo.getDateTravelRes());
+		voR.setTravelIdRes(vo.getTravelIdRes());
+		voR.setDateSanctioned(vo.getDateSanctioned());
+		
+		return voR;
+	}
 }
