@@ -51,6 +51,7 @@ public class CalculaINSService
 		this.travelsService = travelsService;
 	}
 
+	@Transactional 
 	public InsCalculateResponse procesaCalculoINS(String cuatrimestre, Integer anio) 
 	{
 		if(cuatrimestre == null)
@@ -66,7 +67,6 @@ public class CalculaINSService
 		return procesaCalculoInsCuatrimestral(cuatrimestre, anio);
 	}
 
-	@Transactional
 	public InsCalculateResponse procesaCalculoInsCuatrimestral(String cuatrimestre, Integer anio) 
 	{
 		InsCalculateResponse vo = new InsCalculateResponse();
@@ -112,7 +112,6 @@ public class CalculaINSService
 		return vo;
 	}
 
-	@Transactional
 	public void guardaEnInsBitacoraInsDetalle(Map<String, BinnacleIns> acumulados) 
 	{
 		binnacleInsServ.guardaBitacoraInsDetalle(acumulados);
