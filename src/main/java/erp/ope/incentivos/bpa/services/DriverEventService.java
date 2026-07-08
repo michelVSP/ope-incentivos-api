@@ -18,7 +18,7 @@ public class DriverEventService
 		this.repo = repo;
 	}
 	
-	public List<DriverEvent> findDriverEventsByDriverCodesAndStartDate(String driverCodes, String eventCodes, LocalDate fecStart, LocalDate fecEnd)
+	public List<DriverEvent> findDriverEventsByDriverCodesAndStartDate(List<String> driverCodes, List<String> eventCodes, LocalDate fecStart, LocalDate fecEnd)
 	{
 		return repo.findByEventCodeAndDriverCodeAndStartTimeBetween(driverCodes, eventCodes, fecStart, fecEnd);
 	}

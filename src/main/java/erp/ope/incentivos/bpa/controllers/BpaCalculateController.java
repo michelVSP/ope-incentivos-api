@@ -1,7 +1,6 @@
 package erp.ope.incentivos.bpa.controllers;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import erp.ope.incentivos.bpa.dto.DriverResponse;
+import erp.ope.incentivos.bpa.dto.ResumeResponse;
 import erp.ope.incentivos.bpa.services.BpaCalculateAnualService;
 import erp.ope.incentivos.bpa.services.BpaFindCalculateService;
 import erp.ope.incentivos.exception.BadRequestException;
@@ -43,7 +43,7 @@ public class BpaCalculateController
 	}
 	
 	@PostMapping("/calculate-bpa")
-	public void calculateAnualBpa(@RequestBody List<String> lstDrivers,
+	public ResponseEntity<ResumeResponse> calculateAnualBpa(@RequestBody List<String> lstDrivers,
 								  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateCalculate)
 	{
 		if(dateCalculate == null)
@@ -52,21 +52,7 @@ public class BpaCalculateController
 		if(lstDrivers == null || lstDrivers.isEmpty())
 			throw new RecursoNoEncontradoException("No se dieron claves de conductores");
 		
-		serviceCalculate.calculateBPAOnAbsoluteDate(lstDrivers, dateCalculate);
-	}
-	
-	@PostMapping("/calculate-bpa-absolute")
-	public void calculateAnualBpaOnAbsoluteDate( @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateCalculate)
-	{
-		if(dateCalculate == null)
-			throw new BadRequestException("No se dio una fecha para calcular ");
-		
-		Collection<DriverResponse> lst = serviceFind.findDriversAniversary(dateCalculate);
-		if(lst == null || lst.isEmpty())
-			throw new RecursoNoEncontradoException("No se encontraron conductores con la fecha de aniversario proporcionada");
-		
-//		Map<String, DriverRequest> map = serviceFind.convertDriverResponseToRequest(lst);
-//		
-//		serviceCalculate.calculateBPAOnAbsoluteDate(map, dateCalculate);
+		ResumeResponse response = serviceCalculate.calculateBPAOnAbsoluteDate(lstDrivers, dateCalculate);
+		return ResponseEntity.ok(response);
 	}
 }

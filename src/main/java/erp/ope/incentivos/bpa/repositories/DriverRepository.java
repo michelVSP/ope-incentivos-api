@@ -14,7 +14,7 @@ public interface DriverRepository extends JpaRepository<Driver, String>
 	List<Driver> findAllByHrStatus(Integer hrStatus);
 	
 	@Query("""
-			select d from Driver d where d.driverCode in (:codes) and d.hrStatus = 1
+			select d from Driver d where d.driverCode in :codes and d.hrStatus = 1
 			""")
-	List<Driver> findByDriverCodesIn(String codes);
+	List<Driver> findByDriverCodesIn(List<String> codes);
 }

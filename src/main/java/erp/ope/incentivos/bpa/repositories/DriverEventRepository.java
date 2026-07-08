@@ -16,9 +16,9 @@ public interface DriverEventRepository extends JpaRepository<DriverEvent, Driver
 	@Query("""
 			select e 
 			from DriverEvent e
-			where e.driverCode in (:driverCodes)
-			and e.eventCode in (:eventCodes)
+			where e.driverCode in :driverCodes
+			and e.eventCode in :eventCodes
 			and e.startTime between :fecStart and :fecEnd
 			""")
-	List<DriverEvent> findByEventCodeAndDriverCodeAndStartTimeBetween(String driverCodes, String eventCodes, LocalDate fecStart, LocalDate fecEnd);
+	List<DriverEvent> findByEventCodeAndDriverCodeAndStartTimeBetween(List<String> driverCodes, List<String> eventCodes, LocalDate fecStart, LocalDate fecEnd);
 }

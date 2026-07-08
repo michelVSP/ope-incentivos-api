@@ -46,7 +46,7 @@ public class BpaFindCalculateService
 		/**
 		 * buscamos calculos previos en el año de los conductores filtrados en el año
 		 * */
-		String driverCodes = mapDriverAniv.keySet().stream().collect(Collectors.joining(","));
+		List<String> driverCodes = mapDriverAniv.keySet().stream().map(e -> "'"+ e +"'").collect(Collectors.toList());
 		List<BpaDetail> lstDetail = bpaDetailServ.findByYearCalculatedAndDriverCodes(dateCalculate.getYear(), driverCodes);
 		List<String> lstDriverCodes = lstDetail.stream().filter(e -> e!= null && e.getDriverCode() != null).map(BpaDetail::getDriverCode).toList();
 		

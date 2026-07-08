@@ -1,7 +1,6 @@
 package erp.ope.incentivos.bpa.services;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -28,9 +27,7 @@ public class DriverService
 	{
 		if(lstDriverCodes == null || lstDriverCodes.isEmpty())
 			throw new BadRequestException("No se dieron claves de conductores para buscar");
-		
-		String driverCodes = lstDriverCodes.stream().collect(Collectors.joining(","));
-		
-		return repo.findByDriverCodesIn(driverCodes);
+
+		return repo.findByDriverCodesIn(lstDriverCodes);
 	}
 }

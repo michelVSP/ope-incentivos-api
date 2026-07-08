@@ -15,7 +15,7 @@ public interface BpaDetailRepository extends JpaRepository<BpaDetail, Integer>
 			select a
 			from BpaDetail a
 			where a.yearCalculated = :yearCalculated
-			and a.driverCode in (:codes)
+			and a.driverCode in :codes
 			""")
-	List<BpaDetail> findByYearCalculatedAndDriverCodeIn(Integer yearCalculated, String codes);
+	List<BpaDetail> findByYearCalculatedAndDriverCodeIn(Integer yearCalculated, List<String> codes);
 }

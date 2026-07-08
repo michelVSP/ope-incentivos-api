@@ -26,7 +26,7 @@ public class BpaParamService
 		pk.setParamName("BPA_TYPE_INCENTIVES_CODE");
 		
 		Optional<BpaParam> opc = repo.findById(pk);
-		if(opc.isPresent())
+		if(!opc.isPresent())
 			throw new RecursoNoEncontradoException("No se encontro el paramtro de incidencias");
 		
 		BpaParam vo = opc.get();
@@ -43,7 +43,7 @@ public class BpaParamService
 		pk.setParamName("BPA_MIN_DAYS_GOAL");
 		
 		Optional<BpaParam> opc = repo.findById(pk);
-		if(opc.isPresent())
+		if(!opc.isPresent())
 			throw new RecursoNoEncontradoException("No se encontro el paramtro de minimo de dias para alcanzar el bono");
 		
 		BpaParam vo = opc.get();

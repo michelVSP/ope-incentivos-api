@@ -17,7 +17,7 @@ public class BpaDetailService
 		this.repo = repo;
 	}
 	
-	public List<BpaDetail> findByYearCalculatedAndDriverCodes(Integer year, String codes)
+	public List<BpaDetail> findByYearCalculatedAndDriverCodes(Integer year, List<String> codes)
 	{
 		return repo.findByYearCalculatedAndDriverCodeIn(year, codes);
 	}
