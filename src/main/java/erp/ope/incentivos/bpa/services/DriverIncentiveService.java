@@ -17,11 +17,9 @@ public class DriverIncentiveService
 		this.repo = repo;
 	}
 
-	public void saveDriversBPAIncentive(List<DriverIncentive> lstDriverBpa)
+	public void saveDriversBPAIncentive(List<DriverIncentive>  lstDriverIncentives)
 	{
-		for (DriverIncentive driverIncentive : lstDriverBpa) {
-			repo.save(driverIncentive);
-		}
+			repo.saveAll(lstDriverIncentives);
 	}
 	
 }

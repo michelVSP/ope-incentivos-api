@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class DriverCalculateResponse 
 {
 	String driverCode;
+	Integer totalDays;
 	Integer minDaysRequired;
 	Integer bonusDays;
 	Integer	statusGl;

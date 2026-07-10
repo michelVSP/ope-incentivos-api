@@ -27,11 +27,11 @@ public class BpaParamService
 		
 		Optional<BpaParam> opc = repo.findById(pk);
 		if(!opc.isPresent())
-			throw new RecursoNoEncontradoException("No se encontro el paramtro de incidencias");
+			throw new RecursoNoEncontradoException("No se encontró el parámetro de incidencias");
 		
 		BpaParam vo = opc.get();
 		if(vo.getParamValue() == null || vo.getParamValue().trim().equalsIgnoreCase(""))
-			throw new RecursoNoEncontradoException("No se dio un valor al parametro BPA_TYPE_INCENTIVES_CODE");
+			throw new RecursoNoEncontradoException("No se dio un valor al parámetro BPA_TYPE_INCENTIVES_CODE");
 			
 		return vo.getParamValue();
 	}
@@ -44,11 +44,11 @@ public class BpaParamService
 		
 		Optional<BpaParam> opc = repo.findById(pk);
 		if(!opc.isPresent())
-			throw new RecursoNoEncontradoException("No se encontro el paramtro de minimo de dias para alcanzar el bono");
+			throw new RecursoNoEncontradoException("No se encontró el parámetro de mínimo de días para alcanzar el bono");
 		
 		BpaParam vo = opc.get();
 		if(vo.getParamValue() == null || vo.getParamValue().trim().equalsIgnoreCase(""))
-			throw new RecursoNoEncontradoException("No se dio un valor al parametro BPA_MIN_DAYS_GOAL");
+			throw new RecursoNoEncontradoException("No se dio un valor al parámetro BPA_MIN_DAYS_GOAL");
 			
 		return vo.getParamValue();
 	}

@@ -21,4 +21,9 @@ public class BpaDetailService
 	{
 		return repo.findByYearCalculatedAndDriverCodeIn(year, codes);
 	}
+
+	public void saveBpaDetails(List<BpaDetail> lstBpaDetails)
+	{
+		repo.saveAll(lstBpaDetails);
+	}
 }

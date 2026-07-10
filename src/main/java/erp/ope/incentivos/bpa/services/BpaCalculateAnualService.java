@@ -72,30 +72,40 @@ public class BpaCalculateAnualService
 		/**
 		 * proceso de calculo de bono
 		 * */
-		List<DriverIncentive> lstDriverBpa = calculateBPA(lstDrivers, minDaysGoal, mapIncid, dateCalculate, lstDriverCodesStr, lstBpaTabulatorServ);
+		List<List<Object>> lst = calculateBPA(lstDrivers, minDaysGoal, mapIncid, dateCalculate, lstDriverCodesStr, lstBpaTabulatorServ);
+		List<DriverIncentive> lstDriverIncentives = lst.get(0).stream().map(e -> (DriverIncentive) e).toList();
+		List<BpaDetail> lstBpaDetails = lst.get(1).stream().map(e -> (BpaDetail) e).toList();
 		
-		driverIncentService.saveDriversBPAIncentive(lstDriverBpa);
+		/**
+		 * Guardo de informacion ( Driver incentive - BPADetail
+		 * */
+		driverIncentService.saveDriversBPAIncentive(lstDriverIncentives);
+		bpaDetailServ.saveBpaDetails(lstBpaDetails);
 		
-		return getDriverResponse(lstDriverCodesStr, lstDriverBpa, dateCalculate, minDaysGoalStr);
+		/**
+		 * Respues al cliente con el resumen del proceso
+		 * */
+		return getDriverResponse(lstDriverCodesStr, lstDriverIncentives, dateCalculate, minDaysGoalStr);
 	}
 	
-	private ResumeResponse getDriverResponse(List<String> lstDriverCodesStr, List<DriverIncentive> lstDriverBpa, LocalDate dateCalculate, String minDaysGoalStr) 
+	private ResumeResponse getDriverResponse(List<String> lstDriverCodesStr, List<DriverIncentive> lstDriverIncentives, LocalDate dateCalculate, String minDaysGoalStr) 
 	{
 		ResumeResponse vo = new ResumeResponse();
 		vo.setDateProcess(dateCalculate);
 		vo.setTotalRequested(lstDriverCodesStr.size());
-		vo.setProcessed(lstDriverBpa.size());
-		vo.setSkipped(lstDriverCodesStr.size() - lstDriverBpa.size());
+		vo.setProcessed(lstDriverIncentives.size());
+		vo.setSkipped(lstDriverCodesStr.size() - lstDriverIncentives.size());
 
 		List<String> lstDriverGain = new ArrayList<>();
 		List<DriverCalculateResponse> lst = new ArrayList<>();
-		for (DriverIncentive driverIncentive : lstDriverBpa) 
+		for (DriverIncentive driverIncentive : lstDriverIncentives) 
 		{
 			DriverCalculateResponse dResp = new DriverCalculateResponse();
 			dResp.setBonusDays(driverIncentive.getAmount());
 			dResp.setDriverCode(driverIncentive.getPk().getDriverCode());	
 			dResp.setMinDaysRequired(Integer.parseInt(minDaysGoalStr));
 			dResp.setStatusGl(driverIncentive.getStatusIncentive());
+			dResp.setTotalDays(driverIncentive.getTotalDays());
 			lst.add(dResp);
 			
 			if(driverIncentive.getStatusIncentive().intValue() == 1)
@@ -113,9 +123,12 @@ public class BpaCalculateAnualService
 		return vo;
 	}
 
-	private List<DriverIncentive> calculateBPA(List<Driver> lstDrivers, int minDaysGoal, Map<String, List<DriverEvent>> mapIncid, LocalDate dateCalculate, List<String> lstDriverCodesStr, List<BpaTabulator> lstBpaTabulatorServ) 
+	private List<List<Object>> calculateBPA(List<Driver> lstDrivers, int minDaysGoal, Map<String, List<DriverEvent>> mapIncid, LocalDate dateCalculate, List<String> lstDriverCodesStr, List<BpaTabulator> lstBpaTabulatorServ) 
 	{
-		List<DriverIncentive> lstDriversIncentives = new ArrayList<>();
+		List<List<Object>> lst = new ArrayList<>();
+		
+		List<Object> lstDriversIncentives = new ArrayList<>();
+		List<Object> lstDriversBpaDetail = new ArrayList<>();
 		
 		for (Driver driver : lstDrivers) 
 		{
@@ -125,30 +138,63 @@ public class BpaCalculateAnualService
 			
 			int daysWork = sumDaysEvents(lstEvent);
 			
-			DriverIncentive vo = new DriverIncentive();
-			DriverIncentivePK pk = new DriverIncentivePK();
+			DriverIncentive vo = driverToDriverIncentive(driver);
+			vo.getPk().setYearCalculated(dateCalculate.getYear());
+			vo.setTotalDays(daysWork);
 			
-			pk.setDriverCode(driver.getDriverCode());
-			pk.setIncentiveCode("BPA");
-			pk.setMonthCalculated(1); // por defaul 1 ya que solo es una ves al año
-			pk.setYearCalculated(dateCalculate.getYear());
-			vo.setPk(pk);
-			vo.setFrecuency("ANUAL");
-			vo.setIncentiveDescription("BONO ANUAL DE PRODUCTIVIDAD");
-			vo.setStatusIncentive(0);
-			vo.setAmount(0);
+			BpaDetail voDet = driverToBpaDetail(driver, dateCalculate);
+			voDet.setDaysIncentivesAnalyzed(daysWork);
+			voDet.setIncentivesAnalyzed(lstEvent.size());
 			
 			if(daysWork >= minDaysGoal)
 			{
 				Integer amount = getAmountByParameterTabulator(driver, lstBpaTabulatorServ, dateCalculate);
 				vo.setStatusIncentive(1);
 				vo.setAmount(amount);
+				voDet.setStatus(1);
 			}
 			
 			lstDriversIncentives.add(vo);
+			lstDriversBpaDetail.add(voDet);
 		}
 		
-		return lstDriversIncentives;
+		lst.add(lstDriversIncentives);
+		lst.add(lstDriversBpaDetail);
+		
+		return lst;
+	}
+
+	private BpaDetail driverToBpaDetail(Driver driver, LocalDate dateCalculate) 
+	{
+		BpaDetail vo = new BpaDetail();
+		vo.setBrandCode(driver.getBrandCode());
+		vo.setBrandEntryDate(driver.getBrandEntryDate());
+		vo.setBrandName(driver.getBrandName());
+		vo.setDriverCode(driver.getDriverCode());
+		vo.setDriverName(driver.getFirstName() +" " + driver.getPaternalLastName() +" " + driver.getMaternalLastName());
+		vo.setRegionEntryDate(driver.getRegionEntryDate());
+		vo.setStatus(0);
+		vo.setCalculatedAt(dateCalculate);
+		vo.setYearCalculated(dateCalculate.getYear());
+		vo.setEmployeSeniority( (int) ChronoUnit.YEARS.between(driver.getRegionEntryDate(), dateCalculate));
+		
+		return vo;
+	}
+
+	private DriverIncentive driverToDriverIncentive(Driver driver) 
+	{	
+		DriverIncentive vo = new DriverIncentive();
+		DriverIncentivePK pk = new DriverIncentivePK();
+		
+		pk.setDriverCode(driver.getDriverCode());
+		pk.setIncentiveCode("BPA");
+		pk.setMonthCalculated(1); // por defaul 1 ya que solo es una ves al año
+		vo.setPk(pk);
+		vo.setFrecuency("ANUAL");
+		vo.setIncentiveDescription("BONO ANUAL DE PRODUCTIVIDAD");
+		vo.setStatusIncentive(0);
+		vo.setAmount(0);
+		return vo;
 	}
 
 	private Integer getAmountByParameterTabulator(Driver driver, List<BpaTabulator> lstBpaTabulatorServ, LocalDate dateCalculate) 

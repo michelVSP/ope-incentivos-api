@@ -1,10 +1,12 @@
 package erp.ope.incentivos.bpa.model;
 
+
 import erp.ope.incentivos.bpa.model.pk.DriverIncentivePK;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,4 +32,7 @@ public class DriverIncentive
 	
 	@Column(name = "amount")
 	Integer amount;
+	
+	@Transient
+	Integer totalDays;
 }
